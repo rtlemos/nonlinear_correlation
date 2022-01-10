@@ -26,6 +26,13 @@ import unittest
 
 
 def nonlinear_r(x: np.ndarray, y: np.ndarray) -> dict:
+    """
+    Computes Sourav Chatterjee's nonlinear correlation coefficient for continuous variables
+
+    :param x: sample of predictor variable
+    :param y: sample of response variable (same length as x)
+    :return: dict with correlation coefficient value and asymptotic p-value, assuming no ties
+    """
     _check_inputs(x, y)
     rank_y = _get_rank(y[np.argsort(x)])
     antirank_y = _get_antirank(rank_y)
@@ -33,7 +40,7 @@ def nonlinear_r(x: np.ndarray, y: np.ndarray) -> dict:
     denominator = _get_denominator(antirank_y)
     xi = 1 - numerator / denominator
     p_value = _nonlinear_p_value(xi, len(x))
-    return {'r': xi, 'p_value': p_value}
+    return {'correlation': xi, 'p_value': p_value}
 
 
 ###############################################
@@ -120,11 +127,11 @@ class NonlinearCorrelationTester(unittest.TestCase):
     def test_nonlinear_r(self):
         # For deterministic associations (i.e., no error), the max value of nonlinear_r is (n - 2) / (n - 1);
         # In this test case, n=3 and thus r=0.25
-        self.assertEqual(nonlinear_r(self.x, self.y)['r'], 0.25)
-        self.assertEqual(nonlinear_r(self.x, self.x)['r'], 0.25)
-        self.assertEqual(nonlinear_r(self.y, self.y)['r'], 0.25)
+        self.assertEqual(nonlinear_r(self.x, self.y)['correlation'], 0.25)
+        self.assertEqual(nonlinear_r(self.x, self.x)['correlation'], 0.25)
+        self.assertEqual(nonlinear_r(self.y, self.y)['correlation'], 0.25)
         # the following correlation value was taken from R package XICOR, using the same input x_long and y_long
-        self.assertAlmostEqual(nonlinear_r(self.x_long, self.y_long)['r'], 0.5995551)
+        self.assertAlmostEqual(nonlinear_r(self.x_long, self.y_long)['correlation'], 0.5995551)
 
     def test_nonlinear_p_value(self):
         self.assertAlmostEqual(nonlinear_r(self.x, self.y)['p_value'], 0.2467814)
