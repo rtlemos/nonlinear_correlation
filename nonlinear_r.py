@@ -35,9 +35,9 @@ def nonlinear_r(x: np.ndarray, y: np.ndarray) -> dict:
     """
     _check_inputs(x, y)
     rank_y = _get_rank(y[np.argsort(x)])
-    antirank_y = _get_antirank(rank_y)
+    anti_rank_y = _get_anti_rank(rank_y)
     numerator = _get_numerator(rank_y)
-    denominator = _get_denominator(antirank_y)
+    denominator = _get_denominator(anti_rank_y)
     xi = 1 - numerator / denominator
     p_value = _nonlinear_p_value(xi, len(x))
     return {'correlation': xi, 'p_value': p_value}
@@ -59,8 +59,8 @@ def _get_rank(z: np.ndarray) -> np.ndarray:
     return ranks
 
 
-def _get_antirank(z: np.ndarray) -> np.ndarray:
-    return len(z) - _get_rank(z) + 1
+def _get_anti_rank(rank_y: np.ndarray) -> np.ndarray:
+    return len(rank_y) - rank_y + 1
 
 
 def _get_numerator(rank_y: np.ndarray) -> np.ndarray:
@@ -90,6 +90,16 @@ class NonlinearCorrelationTester(unittest.TestCase):
                        -0.329, 0.49, 0.915, 0.149, 0.148, 0.124, 0.359, 0.494, 0.021, 0.662, 1.938, 0.778, 2.513,
                        0.029, 0.136, 0.061, 1.289])
 
+    def test_all(self):
+        self.test_input_error()
+        self.test_input_ok()
+        self.test_rank()
+        self.test_anti_rank()
+        self.test_numerator()
+        self.test_denominator()
+        self.test_nonlinear_r()
+        self.test_nonlinear_p_value()
+
     def test_input_error(self):
         self.assertRaises(ValueError, _check_inputs, self.x, self.y[0:2])
 
@@ -100,9 +110,9 @@ class NonlinearCorrelationTester(unittest.TestCase):
         self.assertEqual(_get_rank(self.x).tolist(), [2, 1, 3])
         self.assertEqual(_get_rank(self.y).tolist(), [2, 3, 1])
 
-    def test_antirank(self):
-        self.assertEqual(_get_antirank(self.x).tolist(), [2, 3, 1])
-        self.assertEqual(_get_antirank(self.y).tolist(), [2, 1, 3])
+    def test_anti_rank(self):
+        self.assertEqual(_get_anti_rank(_get_rank(self.x)).tolist(), [2, 3, 1])
+        self.assertEqual(_get_anti_rank(_get_rank(self.y)).tolist(), [2, 1, 3])
 
     def test_numerator(self):
         rank_y = _get_rank(self.y[np.argsort(self.x)])
